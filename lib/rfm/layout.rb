@@ -210,9 +210,21 @@ module Rfm
     private
     
     def get_records(action, params = {}, options = {})
-      include_portals = options.delete(:include_portals)
-      xml_response = db.server.connect(action, default_params.merge(params), options)
-      Rfm::Resultset.new(db.server, xml_response.body, self, include_portals)
+
+        system_error_retry_count = 0  
+        include_portals = options.delete(:include_portals)
+
+      begin
+        xml_response = db.server.connect(action, default_params.merge(params), options)
+        Rfm::Resultset.new(db.server, xml_response.body, self, include_portals)
+      rescue Rfm::Error::SystemError => e
+        if system_error_retry_count < 10
+          system_error_retry_count += 1
+          retry
+        else
+          raise e
+        end
+      end
     end
     
     def default_params
