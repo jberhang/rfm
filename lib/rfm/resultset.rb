@@ -73,9 +73,12 @@ module Rfm
       @include_portals  = portals 
       
       doc = Nokogiri.XML(remove_namespace(xml_response))
+      error_xpath = doc.xpath('/fmresultset/error')
       
-      error = doc.xpath('/fmresultset/error').attribute('code').value.to_i
-      check_for_errors(error, server.state[:raise_on_401])
+      raise Rfm::Error::SystemError.new(0,"Unexpected XML response") if error_xpath.empty?
+
+      error = error_xpath.attribute('code').value.to_i
+      check_for_errors(error, server.state[:raise_on_401])        
 
       datasource        = doc.xpath('/fmresultset/datasource')
       meta              = doc.xpath('/fmresultset/metadata')
