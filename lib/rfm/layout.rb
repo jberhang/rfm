@@ -220,6 +220,7 @@ module Rfm
       rescue Rfm::Error::SystemError => e
         if system_error_retry_count < 10
           system_error_retry_count += 1
+          sleep 2
           retry
         else
           raise e
